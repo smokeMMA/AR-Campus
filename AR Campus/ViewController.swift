@@ -17,6 +17,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //Enable default lighting
+        sceneView.autoenablesDefaultLighting = true
+        
         // Set the view's delegate
         sceneView.delegate = self
         
@@ -53,24 +56,28 @@ extension ViewController {
         
         let scene = SCNScene(named:"art.scnassets/campus.scn")!
         let node = scene.rootNode.clone()
+        
+        //adding tree in code
         let tree = getTreeNode()
         node.addChildNode(tree)
+        
+        let tree1 = getTreeNode()
+        tree1.position.x += 0.3
+        node.addChildNode(tree1)
+ 
+       
         node.position.z -= 0.8
         sceneView.scene.rootNode.addChildNode(node)
     }
     
-//    func placeTree() {
-//        let tree = getTreeNode()
-//        sceneView.scene.rootNode.addChildNode(tree)
-//    }
-    
-    
     func getTreeNode() -> SCNNode {
+        
         //parent node
         let tree = SCNNode()
+        
         //materials
         let croneMaterial = SCNMaterial()
-        croneMaterial.diffuse.contents = UIColor.green
+        croneMaterial.diffuse.contents = #colorLiteral(red: 0.1960784346, green: 0.3411764801, blue: 0.1019607857, alpha: 1)
         
         let stallMaterial = SCNMaterial()
         stallMaterial.diffuse.contents = UIColor.brown
@@ -81,20 +88,21 @@ extension ViewController {
         let stall = SCNNode(geometry: stallGeometry)
         stall.position.y -= 0.4
         
+        tree.addChildNode(stall)
         
         //crone node
         let croneGeometry = SCNSphere(radius: 0.3)
         croneGeometry.materials = [croneMaterial]
         let crone = SCNNode(geometry: croneGeometry)
-        
-        
+    
         tree.addChildNode(crone)
-        tree.addChildNode(stall)
         
+        //set position
         tree.position.x -= 0.3
-        tree.position.y -= 0.13
+        tree.position.y -= 0.3
         tree.scale = SCNVector3(0.2, 0.2, 0.2)
         
         return tree
     }
+    
 }
