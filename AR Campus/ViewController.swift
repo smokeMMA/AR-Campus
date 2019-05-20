@@ -23,11 +23,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Show statistics such as fps and timing information
         sceneView.showsStatistics = true
         
-        // Create a new scene
-        let scene = SCNScene(named: "art.scnassets/ship.scn")!
+        placeCampus()
         
-        // Set the scene to the view
-        sceneView.scene = scene
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -47,29 +44,57 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.session.pause()
     }
 
-    // MARK: - ARSCNViewDelegate
     
-/*
-    // Override to create and configure nodes for anchors added to the view's session.
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        let node = SCNNode()
-     
-        return node
-    }
-*/
+}
+
+extension ViewController {
     
-    func session(_ session: ARSession, didFailWithError error: Error) {
-        // Present an error message to the user
+    func placeCampus() {
         
-    }
-    
-    func sessionWasInterrupted(_ session: ARSession) {
-        // Inform the user that the session has been interrupted, for example, by presenting an overlay
-        
+        let scene = SCNScene(named:"art.scnassets/campus.scn")!
+        let node = scene.rootNode.clone()
+        let tree = getTreeNode()
+        node.addChildNode(tree)
+        node.position.z -= 0.8
+        sceneView.scene.rootNode.addChildNode(node)
     }
     
-    func sessionInterruptionEnded(_ session: ARSession) {
-        // Reset tracking and/or remove existing anchors if consistent tracking is required
+//    func placeTree() {
+//        let tree = getTreeNode()
+//        sceneView.scene.rootNode.addChildNode(tree)
+//    }
+    
+    
+    func getTreeNode() -> SCNNode {
+        //parent node
+        let tree = SCNNode()
+        //materials
+        let croneMaterial = SCNMaterial()
+        croneMaterial.diffuse.contents = UIColor.green
         
+        let stallMaterial = SCNMaterial()
+        stallMaterial.diffuse.contents = UIColor.brown
+        
+        //stall node
+        let stallGeometry = SCNCylinder(radius: 0.05, height: 0.5)
+        stallGeometry.materials = [stallMaterial]
+        let stall = SCNNode(geometry: stallGeometry)
+        stall.position.y -= 0.4
+        
+        
+        //crone node
+        let croneGeometry = SCNSphere(radius: 0.3)
+        croneGeometry.materials = [croneMaterial]
+        let crone = SCNNode(geometry: croneGeometry)
+        
+        
+        tree.addChildNode(crone)
+        tree.addChildNode(stall)
+        
+        tree.position.x -= 0.3
+        tree.position.y -= 0.13
+        tree.scale = SCNVector3(0.2, 0.2, 0.2)
+        
+        return tree
     }
 }
