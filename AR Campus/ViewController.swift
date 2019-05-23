@@ -10,8 +10,8 @@ import UIKit
 import SceneKit
 import ARKit
 
-class ViewController: UIViewController, ARSCNViewDelegate {
-
+class ViewController: UIViewController {
+    
     @IBOutlet var sceneView: ARSCNView!
     
     override func viewDidLoad() {
@@ -23,10 +23,13 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Set the view's delegate
         sceneView.delegate = self
         
+        //Show feature points
+        sceneView.debugOptions = [.showFeaturePoints]
+        
         // Show statistics such as fps and timing information
         sceneView.showsStatistics = true
         
-        placeCampus()
+        //placeCampus()
         
     }
     
@@ -35,7 +38,10 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Create a session configuration
         let configuration = ARWorldTrackingConfiguration()
-
+        
+        //Detect planes
+        configuration.planeDetection = [.horizontal]
+        
         // Run the view's session
         sceneView.session.run(configuration)
     }
@@ -46,26 +52,27 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Pause the view's session
         sceneView.session.pause()
     }
-
+    
     
 }
 
 extension ViewController {
     
     func placeCampus() {
-        
+
         let scene = SCNScene(named:"art.scnassets/campus.scn")!
         let node = scene.rootNode.clone()
-        
+
         //adding tree in code
         let tree = getTreeNode()
         node.addChildNode(tree)
-        
-        let tree1 = getTreeNode()
-        tree1.position.x += 0.3
-        node.addChildNode(tree1)
- 
-       
+
+
+        //set position
+        tree.position.x -= 0.3
+        tree.position.y -= 0.3
+        tree.scale = SCNVector3(0.2, 0.2, 0.2)
+
         node.position.z -= 0.8
         sceneView.scene.rootNode.addChildNode(node)
     }
@@ -94,15 +101,55 @@ extension ViewController {
         let croneGeometry = SCNSphere(radius: 0.3)
         croneGeometry.materials = [croneMaterial]
         let crone = SCNNode(geometry: croneGeometry)
-    
+        
         tree.addChildNode(crone)
         
-        //set position
-        tree.position.x -= 0.3
-        tree.position.y -= 0.3
-        tree.scale = SCNVector3(0.2, 0.2, 0.2)
         
         return tree
+    }
+    
+}
+
+extension ViewController: ARSCNViewDelegate {
+    
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
+        print(Date(), #line, #function, "Founded plane")
+        
+        //avoid crash
+        DispatchQueue.global().async {
+            let campus = self.createCampus(with: planeAnchor)
+            campus.position = SCNVector3(planeAnchor.center.x, 0, planeAnchor.center.z)
+            node.addChildNode(campus)
+        }
+       
+        
+        
+    }
+    
+    func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
+        guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
+        guard let campusNode = node.childNodes.first else { return }
+        
+        campusNode.position = SCNVector3(planeAnchor.center.x, 0, planeAnchor.center.z)
+        
+    }
+    
+    func createCampus(with planeAnchor: ARPlaneAnchor) -> SCNNode {
+
+        let scene = SCNScene(named:"art.scnassets/campus.scn")!
+        let node = scene.rootNode.clone()
+        
+        //adding tree in code
+        let tree = getTreeNode()
+        
+        //set position
+        tree.position.x -= 0.1
+        tree.position.y += 0.05
+        tree.scale = SCNVector3(0.1, 0.1, 0.1)
+        
+        node.addChildNode(tree)
+        return node
     }
     
 }
